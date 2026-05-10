@@ -138,13 +138,26 @@ public:
         }
     }
     friend std::ostream& operator<<(std::ostream& os,const dfa& automat){
-        os<<"Transitions:\n";
-        for(auto& state:automat.transitions){
-            for(auto& transition:state.second){
-                os<<state.first<<" --"<<transition.first<<"--> "<<transition.second<<"\n";
+            os<<"Stari:\n";
+            for(auto& state:automat.states){
+                os<<state<<" ";
             }
-        }
-        return os;
+            os<<"\n";
+            os<<"Stare initiala: "<<automat.initial_state<<"\n";
+            os<<"Stari finale:\n";
+            for(auto& state:automat.final_states){
+                if(state.second){
+                    os<<state.first<<" ";
+                }
+            }
+            os<<"\n";
+            os<<"Tranzitii:\n";
+            for(auto& state:automat.transitions){
+                for(auto& transition:state.second){
+                    os<<state.first<<"->"<<transition.second<<" "<<transition.first<<"\n";
+                }
+            }
+            return os;
     }
 };
 
@@ -207,8 +220,11 @@ public:
             }
         }
     }
-    void complete_lambda_chain(std::string root_state,std::string curr_state){
-        //std::cout<<"lambda chain from:"<<root_state<<"to:"<<curr_state<<"\n";
+    void complete_lambda_chain(std::string root_state,std::string curr_state,std::set<std::string> visited_states){
+        if(visited_states.count(curr_state) != 0){
+            return;
+        }
+        visited_states.insert(curr_state);
         if(root_state != curr_state){
             this->add_transition(root_state,curr_state,"λ");
         }
@@ -216,7 +232,7 @@ public:
             final_states[root_state]=true;
         }
         for(auto& state:transitions[curr_state]["λ"]){
-            complete_lambda_chain(root_state,state);
+            complete_lambda_chain(root_state,state,visited_states);
         }
     }
     void enhance_lambda_chain(std::string state){
@@ -237,7 +253,8 @@ public:
     }
     void complete_lambda_chains(){
         for(auto& state:this->states){
-            complete_lambda_chain(state,state);
+            std::set<std::string> empty_set;
+            complete_lambda_chain(state,state,empty_set);
         }
         for(auto& state:this->states){
             enhance_lambda_chain(state);
@@ -323,29 +340,36 @@ public:
         return result;
     }
     friend std::ostream& operator<<(std::ostream& os,const lnfa& automat){
-            os<<"Initial state: "<<automat.initial_state<<"\n";
-            os<<"Final states: ";
-            for(auto& state:automat.final_states){
-                if(state.second){
-                    os<<state.first<<" ";
+        os<<"Stari:\n";
+        for(auto& state:automat.states){
+            os<<state<<" ";
+        }
+        os<<"\n";
+        os<<"Stare initiala: "<<automat.initial_state<<"\n";
+        os<<"Stari finale:\n";
+        for(auto& state:automat.final_states){
+            if(state.second){
+                os<<state.first<<" ";
+            }
+        }
+        os<<"\n";
+        os<<"Tranzitii:\n";
+        for(auto& state:automat.transitions){
+            for(auto& transition:state.second){
+                for(auto& final_state:transition.second){
+                    os<<state.first<<" --"<<transition.first<<"--> "<<final_state<<"\n";
                 }
             }
-            os<<"\nTransitions:\n";
-            for(auto& state:automat.transitions){
-                for(auto& transition:state.second){
-                    for(auto& final_state:transition.second){
-                        os<<state.first<<" --"<<transition.first<<"--> "<<final_state<<"\n";
-                    }
-                }
-            }
-            return os;
+        }
+        return os;
     }
 };
 int main(){
     lnfa automat;
     automat.read("date_minimizare.txt");
-    std::cout<<automat<<"\n";
+    std::ofstream file("output_minimizare.txt");
     dfa automat_dfa=automat.convert_to_dfa();
+    file<<automat_dfa<<"\n";
     automat_dfa.minimize();
-    std::cout<<automat_dfa;
+    file<<automat_dfa;
 }
