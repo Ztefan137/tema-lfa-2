@@ -175,7 +175,7 @@ public:
         }
         for(auto& input_state:input_states){
             for(auto& output_state:output_states){
-                std::cout<<"Processing transition: "<<input_state<<" --> "<<output_state<<"\n";
+                std::cout<<"Pentru tranzitia: "<<input_state<<" --> "<<output_state<<"\n";
                 RegEx initial_regex=find_regex(input_state,output_state);
                 RegEx regex1=find_regex(input_state,state);
                 RegEx regex2=find_regex(state,output_state);
@@ -183,7 +183,7 @@ public:
                 transitions[state].erase(find_regex(input_state,output_state));
                 RegEx new_regex=initial_regex+(regex1*(*loop_regex)*regex2);
                 transitions[input_state][new_regex].push_back(output_state);
-                std::cout<<"New Regex: "<<new_regex<<"\n";
+                std::cout<<"Regex nou: "<<new_regex<<"\n";
             }
         }
         for(auto& input_state:input_states){
@@ -233,6 +233,7 @@ int main(){
     regex_converter convertor;
     RegEx output("");
     convertor.convert_lnfa_to_regex(automat_input,output);
-    std::cout<<output;
+    std::ofstream file("output_regex.txt");
+    file<<output;
     return 0;
 }
